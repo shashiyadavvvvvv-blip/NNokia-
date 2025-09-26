@@ -1,0 +1,119 @@
+import React, { useState } from "react";
+
+// Nokia used phone store with payment button & address collection
+
+const initialProducts = [ { id: 1, name: "Nokia 3310 (Classic)", price: 2499, condition: "Good", image: "https://via.placeholder.com/420x300?text=Nokia+3310" }, { id: 2, name: "Nokia 1100", price: 1200, condition: "Fair", image: "https://via.placeholder.com/420x300?text=Nokia+1100" }, { id: 3, name: "Nokia 6600", price: 3499, condition: "Very Good", image: "https://via.placeholder.com/420x300?text=Nokia+6600" }, { id: 4, name: "Nokia 6230i", price: 2799, condition: "Good", image: "https://via.placeholder.com/420x300?text=Nokia+6230i" }, { id: 5, name: "Nokia E71", price: 4999, condition: "Very Good", image: "https://via.placeholder.com/420x300?text=Nokia+E71" }, { id: 6, name: "Nokia N95", price: 5999, condition: "Good", image: "https://via.placeholder.com/420x300?text=Nokia+N95" }, { id: 7, name: "Nokia 5210", price: 1599, condition: "Fair", image: "https://via.placeholder.com/420x300?text=Nokia+5210" }, { id: 8, name: "Nokia 7650", price: 3899, condition: "Good", image: "https://via.placeholder.com/420x300?text=Nokia+7650" }, { id: 9, name: "Nokia 8800", price: 8999, condition: "Very Good", image: "https://via.placeholder.com/420x300?text=Nokia+8800" }, { id: 10, name: "Nokia 6310i", price: 1999, condition: "Good", image: "https://via.placeholder.com/420x300?text=Nokia+6310i" } ];
+
+export default function NokiaStore() { const [products, setProducts] = useState(initialProducts); const [query, setQuery] = useState(""); const [conditionFilter, setConditionFilter] = useState("All"); const [sortOrder, setSortOrder] = useState("none"); const [editingId, setEditingId] = useState(null); const [editingPrice, setEditingPrice] = useState(0); const [showAdd, setShowAdd] = useState(false); const [newProduct, setNewProduct] = useState({ name: "", price: "", condition: "Good", image: "" }); const [selectedProduct, setSelectedProduct] = useState(null); const [address, setAddress] = useState(""); const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+function filtered() { let list = products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())); if (conditionFilter !== "All") list = list.filter(p => p.condition === conditionFilter); if (sortOrder === "asc") list = list.slice().sort((a, b) => a.price - b.price); if (sortOrder === "desc") list = list.slice().sort((a, b) => b.price - a.price); return list; }
+
+function startEdit(p) { setEditingId(p.id); setEditingPrice(p.price); }
+
+function saveEdit(id) { setProducts(products.map(p => (p.id === id ? { ...p, price: Number(editingPrice) } : p))); setEditingId(null); }
+
+function remove(id) { if (!confirm("Kya aap sach mein is product ko delete karna chahte hain?")) return; setProducts(products.filter(p => p.id !== id)); }
+
+function addProduct(e) { e.preventDefault(); const id = Math.max(0, ...products.map(p => p.id)) + 1; const prod = { id, name: newProduct.name || Nokia Model ${id}, price: Number(newProduct.price) || 0, condition: newProduct.condition || "Good", image: newProduct.image || https://via.placeholder.com/420x300?text=${encodeURIComponent(newProduct.name || 'Nokia+')} }; setProducts([prod, ...products]); setNewProduct({ name: "", price: "", condition: "Good", image: "" }); setShowAdd(false); }
+
+function exportCSV() { const rows = ["id,name,price,condition,image", ...products.map(p => ${p.id},"${p.name}",${p.price},${p.condition},${p.image})]; const csv = rows.join("\n"); const blob = new Blob([csv], { type: "text/csv" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'nokia-products.csv'; a.click(); URL.revokeObjectURL(url); }
+
+function handlePayment() { // Dummy payment simulation if (!address) { alert("Kripya address dalen"); return; } alert(Payment initiated for ${selectedProduct.name} to address: ${address}); setPaymentSuccess(true); setTimeout(() => { setSelectedProduct(null); setAddress(""); setPaymentSuccess(false); }, 3000); }
+
+return ( <div className="p-6 max-w-6xl mx-auto"> <header className="flex items-center justify-between mb-6"> <h1 className="text-2xl font-bold">Nokia Second-hand Store</h1> <div className="space-x-2"> <button onClick={() => setShowAdd(!showAdd)} className="px-3 py-1 rounded bg-blue-600 text-white">{showAdd ? 'Cancel' : 'Add Product'}</button> <button onClick={exportCSV} className="px-3 py-1 rounded border">Export CSV</button> </div> </header>
+
+{showAdd && (
+    <form onSubmit={addProduct} className="mb-6 p-4 border rounded grid grid-cols-1 md:grid-cols-4 gap-3">
+      <input value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="Phone name" className="p-2 border rounded" />
+      <input value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="Price (INR)" type="number" className="p-2 border rounded" />
+      <select value={newProduct.condition} onChange={e => setNewProduct({ ...newProduct, condition: e.target.value })} className="p-2 border rounded">
+        <option>Good</option>
+        <option>Very Good</option>
+        <option>Fair</option>
+        <option>Poor</option>
+      </select>
+      <input value={newProduct.image} onChange={e => setNewProduct({ ...newProduct, image: e.target.value })} placeholder="Image URL (optional)" className="p-2 border rounded" />
+      <div className="md:col-span-4 flex gap-2">
+        <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">Add</button>
+        <button type="button" onClick={() => { setShowAdd(false); setNewProduct({ name: "", price: "", condition: "Good", image: "" }); }} className="px-4 py-2 border rounded">Cancel</button>
+      </div>
+    </form>
+  )}
+
+  <section className="mb-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+    <div className="flex gap-2">
+      <input placeholder="Search by name..." value={query} onChange={e => setQuery(e.target.value)} className="p-2 border rounded" />
+      <select value={conditionFilter} onChange={e => setConditionFilter(e.target.value)} className="p-2 border rounded">
+        <option>All</option>
+        <option>Very Good</option>
+        <option>Good</option>
+        <option>Fair</option>
+        <option>Poor</option>
+      </select>
+    </div>
+    <div className="flex gap-2">
+      <label className="text-sm">Sort:</label>
+      <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="p-2 border rounded">
+        <option value="none">None</option>
+        <option value="asc">Price low → high</option>
+        <option value="desc">Price high → low</option>
+      </select>
+    </div>
+  </section>
+
+  <main>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {filtered().map(p => (
+        <article key={p.id} className="border rounded overflow-hidden shadow-sm">
+          <img src={p.image} alt={p.name} className="w-full h-44 object-cover" />
+          <div className="p-3">
+            <h2 className="font-semibold">{p.name}</h2>
+            <p className="text-sm text-gray-600">Condition: {p.condition}</p>
+            <div className="mt-2 flex flex-col gap-2">
+              {editingId === p.id ? (
+                <div className="flex gap-2 items-center">
+                  <input type="number" value={editingPrice} onChange={e => setEditingPrice(e.target.value)} className="p-1 border rounded w-28" />
+                  <button onClick={() => saveEdit(p.id)} className="px-2 py-1 bg-green-600 text-white rounded">Save</button>
+                  <button onClick={() => setEditingId(null)} className="px-2 py-1 border rounded">Cancel</button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold">₹{p.price.toLocaleString('en-IN')}</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => startEdit(p)} className="px-2 py-1 border rounded">Edit</button>
+                      <button onClick={() => remove(p.id)} className="px-2 py-1 border rounded text-red-600">Delete</button>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedProduct(p)} className="px-3 py-1 bg-blue-600 text-white rounded">Buy Now</button>
+                </>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    {filtered().length === 0 && (
+      <div className="text-center p-6 text-gray-600">Koi product nahi mila — kuch aur search karein ya naya product add karein.</div>
+    )}
+  </main>
+
+  {selectedProduct && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded max-w-md w-full">
+        <h2 className="text-xl font-bold mb-2">Buy {selectedProduct.name}</h2>
+        <p className="mb-2">Price: ₹{selectedProduct.price.toLocaleString('en-IN')}</p>
+        <textarea value={address} onChange={e => setAddress(e.target.value)} placeholder="Delivery address yahan likhiye" className="w-full border rounded p-2 mb-3"></textarea>
+        <button onClick={handlePayment} className="px-4 py-2 bg-green-600 text-white rounded">Pay Now</button>
+        <button onClick={() => setSelectedProduct(null)} className="px-4 py-2 border rounded ml-2">Cancel</button>
+        {paymentSuccess && <p className="text-green-600 mt-2">Payment successful! Ham aapse contact karenge.</p>}
+      </div>
+    </div>
+  )}
+
+  <footer className="mt-8 text-sm text-gray-500">Tip: Photos jaldi upload karne ke liye phone ke asli photos ka URL yahan laga sakte ho. Prices INR mein dikh rahe hain — zarurat ho toh currency formatter add kar sakte hain.</footer>
+</div>
+
+); }
+
